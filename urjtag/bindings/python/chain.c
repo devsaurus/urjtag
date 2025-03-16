@@ -22,18 +22,15 @@
  * Additional methods by Jonathan Stroud.
  *
  */
-#include <stdio.h>
-
 #include <Python.h>
 #include "structmember.h"
 #include "pycompat23.h"
 
-#include <sys/syscall.h>
+#include <sysdep.h>
 
 #include <urjtag/urjtag.h>
 #include <urjtag/chain.h>
 #include <urjtag/cmd.h>
-//#include <urjtag/bsdl.h>
 
 #include "py_urjtag.h"
 
@@ -108,7 +105,7 @@ urj_py_chkret (int rc)
     }
     else
         PyErr_SetString (UrjtagError,
-                         "liburjtag BUG: unknown urjtag error");
+                         _("liburjtag BUG: unknown urjtag error"));
     return NULL;
 }
 
@@ -122,7 +119,7 @@ urj_pyc_precheck (urj_chain_t *urc, int checks_needed)
 {
     if (urc == NULL)
     {
-        PyErr_SetString (PyExc_RuntimeError, "liburjtag python binding BUG: null chain");
+        PyErr_SetString (PyExc_RuntimeError, _("liburjtag python binding BUG: null chain"));
         return 0;
     }
 
@@ -130,7 +127,7 @@ urj_pyc_precheck (urj_chain_t *urc, int checks_needed)
     {
         if (urj_cmd_test_cable (urc) != URJ_STATUS_OK)
         {
-            PyErr_SetString (UrjtagError, "cable() has not been called");
+            PyErr_SetString (UrjtagError, _("cable() has not been called"));
             return 0;
         }
     }
@@ -140,7 +137,7 @@ urj_pyc_precheck (urj_chain_t *urc, int checks_needed)
         if (urc->parts == NULL)
         {
             PyErr_SetString (PyExc_RuntimeError,
-                             "no parts: detect or addpart not called on this chain");
+                             _("no parts: detect or addpart not called on this chain"));
             return 0;
         }
     }
@@ -150,13 +147,13 @@ urj_pyc_precheck (urj_chain_t *urc, int checks_needed)
         if (!urj_bus)   /* why is this a global and not a chain property? */
         {
             PyErr_SetString (PyExc_RuntimeError,
-                             "Bus missing: initbus not called?");
+                             _("Bus missing: initbus not called?"));
             return 0;
         }
         if (!urj_bus->driver)
         {
             PyErr_SetString (PyExc_RuntimeError,
-                             "Bus driver missing: initbus not called?");
+                             _("Bus driver missing: initbus not called?"));
             return 0;
         }
     }
@@ -255,7 +252,7 @@ urj_pyc_partid (urj_pychain_t *self, PyObject *args)
 
     if (partno >= urc->parts->len)
     {
-        PyErr_SetString (PyExc_RuntimeError, "part number out of range");
+        PyErr_SetString (PyExc_RuntimeError, _("part number out of range"));
         return NULL;
     }
     else
@@ -392,7 +389,7 @@ urj_pyc_set_instruction (urj_pychain_t *self, PyObject *args)
     part = urj_tap_chain_active_part (urc);
     if (part == NULL)
     {
-        PyErr_SetString (UrjtagError, "No active part on chain");
+        PyErr_SetString (UrjtagError, _("No active part on chain"));
         return NULL;
     }
     urj_part_set_instruction (part, instname);
@@ -443,20 +440,20 @@ urj_pyc_get_dr (urj_pychain_t *self, int in, int string, PyObject *args)
     part = urj_tap_chain_active_part (urc);
     if (part == NULL)
     {
-        PyErr_SetString (UrjtagError, "no active part in chain");
+        PyErr_SetString (UrjtagError, _("no active part in chain"));
         return NULL;
     }
     active_ir = part->active_instruction;
     if (active_ir == NULL)
     {
-        PyErr_SetString (UrjtagError, "part without active instruction");
+        PyErr_SetString (UrjtagError, _("part without active instruction"));
         return NULL;
     }
     dr = active_ir->data_register;
     if (dr == NULL)
     {
         PyErr_SetString (UrjtagError,
-                         "instruction without active data register");
+                         _("instruction without active data register"));
         return NULL;
     }
 
@@ -477,7 +474,7 @@ urj_pyc_get_dr (urj_pychain_t *self, int in, int string, PyObject *args)
     if (value_string == NULL)
     {
         PyErr_SetString (UrjtagError,
-                         "error obtaining tap register value");
+                         _("error obtaining tap register value"));
         return NULL;
     }
 
@@ -537,20 +534,20 @@ urj_pyc_set_dr (urj_pychain_t *self, int in, PyObject *args)
     part = urj_tap_chain_active_part (urc);
     if (part == NULL)
     {
-        PyErr_SetString (UrjtagError, "no active part in chain");
+        PyErr_SetString (UrjtagError, _("no active part in chain"));
         return NULL;
     }
     active_ir = part->active_instruction;
     if (active_ir == NULL)
     {
-        PyErr_SetString (UrjtagError, "part without active instruction");
+        PyErr_SetString (UrjtagError, _("part without active instruction"));
         return NULL;
     }
     dr = active_ir->data_register;
     if (dr == NULL)
     {
         PyErr_SetString (UrjtagError,
-                         "instruction without active data register");
+                         _("instruction without active data register"));
         return NULL;
     }
 
@@ -605,7 +602,7 @@ urj_pyc_run_svf (urj_pychain_t *self, PyObject *args)
     if (!urj_pyc_precheck (urc, UPRC_CBL))
         return NULL;
 
-    svf_file = fopen (fname, "r");
+    svf_file = fopen (fname, FOPEN_R);
     if (!svf_file)
     {
         PyErr_SetFromErrnoWithFilename(PyExc_IOError, fname);
@@ -631,14 +628,14 @@ urj_pyc_addpart (urj_pychain_t *self, PyObject *args)
     if (urj_tap_manual_add (urc, len) < 0)
     {
             PyErr_SetString (PyExc_RuntimeError,
-                             "urj_tap_manual_add failed");
+                             _("urj_tap_manual_add failed"));
             return NULL;
     }
 
     if (urc->parts == NULL)
     {
         PyErr_SetString (PyExc_RuntimeError,
-                         "addpart: internal error; no parts.");
+                         _("addpart: internal error; no parts."));
         return NULL;
     }
 
@@ -648,7 +645,7 @@ urj_pyc_addpart (urj_pychain_t *self, PyObject *args)
         urj_part_parts_free (urc->parts);
         self->urchain->parts = NULL;
         PyErr_SetString (PyExc_RuntimeError,
-                         "addpart: internal error; parts->len==0.");
+                         _("addpart: internal error; parts->len==0."));
         return NULL;
     }
 
@@ -680,7 +677,7 @@ urj_pyc_add_register (urj_pychain_t *self, PyObject *args)
         }
         else
             PyErr_SetString (UrjtagError,
-                             "liburjtag BUG: unknown urjtag error");
+                             _("liburjtag BUG: unknown urjtag error"));
         return NULL;
     }
 
@@ -711,7 +708,7 @@ urj_pyc_add_instruction (urj_pychain_t *self, PyObject *args)
         }
         else
             PyErr_SetString (UrjtagError,
-                             "liburjtag BUG: unknown urjtag error");
+                             _("liburjtag BUG: unknown urjtag error"));
         return NULL;
     }
 
@@ -842,7 +839,7 @@ urj_pyc_flashmem (urj_pychain_t *self, PyObject *args)
     if (!msbin && urj_cmd_get_number (optstr, &adr) != URJ_STATUS_OK)
         return NULL;
 
-    f = fopen (fname, "r");
+    f = fopen (fname, FOPEN_R);
     if (!f)
     {
         PyErr_SetFromErrnoWithFilename(PyExc_IOError, fname);
@@ -879,7 +876,7 @@ urj_pyc_get_register (urj_pychain_t *self, PyObject *args)
     
     if(partn < 0 || partn > urc->parts->len) {
          PyErr_SetString (UrjtagError,
-                          "part number out of range for chain length");
+                          _("part number out of range for chain length"));
          return NULL;
     }
     p = urc->parts->parts[partn];
@@ -887,14 +884,14 @@ urj_pyc_get_register (urj_pychain_t *self, PyObject *args)
     dr = urj_part_find_data_register (p, regname);
     if(dr == NULL) {
          PyErr_SetString (UrjtagError,
-                          "get_register: register not found");
+                          _("get_register: register not found"));
          return NULL;
     }
     if(instname) {
         inst = urj_part_find_instruction (p, instname);
         if(inst == NULL) {
             PyErr_SetString (UrjtagError,
-                             "get_register: instruction not found");
+                             _("get_register: instruction not found"));
             return NULL;
         }
     } else {
@@ -957,7 +954,7 @@ urj_pyc_set_signal (urj_pychain_t *self, PyObject *args)
     else
     {
         PyErr_SetString (UrjtagError,
-			 "set_signal: invalid direction");
+			 _("set_signal: invalid direction"));
 	return NULL;
     }
 
@@ -965,7 +962,7 @@ urj_pyc_set_signal (urj_pychain_t *self, PyObject *args)
     if (!s)
     {
         PyErr_SetString (UrjtagError,
-			 "set_signal: signal not found");
+			 _("set_signal: signal not found"));
 	return NULL;
     }
 
@@ -993,7 +990,7 @@ urj_pyc_get_signal (urj_pychain_t *self, PyObject *args)
     if (!s)
     {
         PyErr_SetString (UrjtagError,
-			 "set_signal: signal not found");
+			 _("set_signal: signal not found"));
 	return NULL;
     }
 

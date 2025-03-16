@@ -26,7 +26,7 @@
 #include "structmember.h"
 #include "pycompat23.h"
 
-//#include <sysdep.h>
+#include <sysdep.h>
 
 #include <urjtag/urjtag.h>
 #include <urjtag/chain.h>
@@ -78,7 +78,7 @@ urj_pyr_get_dr (urj_pyregister_t *self, int in, int string, PyObject *args)
     if (dr == NULL)
     {
         PyErr_SetString (UrjtagError,
-                         "invalid data register object");
+                         _("invalid data register object"));
         return NULL;
     }
 
@@ -94,7 +94,7 @@ urj_pyr_get_dr (urj_pyregister_t *self, int in, int string, PyObject *args)
     if (value_string == NULL)
     {
         PyErr_SetString (UrjtagError,
-                         "error obtaining tap register value");
+                         _("error obtaining tap register value"));
         return NULL;
     }
 
@@ -149,7 +149,7 @@ urj_pyr_set_dr (urj_pyregister_t *self, int in, PyObject *args)
     if (dr == NULL)
     {
         PyErr_SetString (UrjtagError,
-                         "invalid register object");
+                         _("invalid register object"));
         return NULL;
     }
 
@@ -208,7 +208,7 @@ urj_pyr_shift_dr (urj_pyregister_t *self, PyObject *args)
     if (self->urreg == NULL)
     {
         PyErr_SetString (UrjtagError,
-                         "invalid register object");
+                         _("invalid register object"));
         return NULL;
     }
 
@@ -217,7 +217,7 @@ urj_pyr_shift_dr (urj_pyregister_t *self, PyObject *args)
     part = urj_tap_chain_active_part (urc);
     if (part == NULL)
     {
-        PyErr_SetString (UrjtagError, "No active part on chain");
+        PyErr_SetString (UrjtagError, _("No active part on chain"));
         return NULL;
     }
     if (instname) 
@@ -227,7 +227,7 @@ urj_pyr_shift_dr (urj_pyregister_t *self, PyObject *args)
     else 
     {
         if (!self->inst) { 
-            PyErr_SetString (UrjtagError, "no instruction for data register");
+            PyErr_SetString (UrjtagError, _("no instruction for data register"));
             return NULL;
         }
         part->active_instruction = self->inst;
@@ -253,7 +253,7 @@ urj_pyr_shift_ir (urj_pyregister_t *self,  PyObject *args)
     part = urj_tap_chain_active_part (urc);
     if (part == NULL)
     {
-        PyErr_SetString (UrjtagError, "No active part on chain");
+        PyErr_SetString (UrjtagError, _("No active part on chain"));
         return NULL;
     }
     if (instname) {
@@ -263,7 +263,7 @@ urj_pyr_shift_ir (urj_pyregister_t *self,  PyObject *args)
     {
         if (!self->inst) 
         { 
-            PyErr_SetString (UrjtagError, "no instruction for data register");
+            PyErr_SetString (UrjtagError, _("no instruction for data register"));
             return NULL;
         }
         part->active_instruction = self->inst;
